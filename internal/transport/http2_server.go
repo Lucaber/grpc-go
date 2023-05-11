@@ -238,6 +238,11 @@ func NewServerTransport(conn net.Conn, config *ServerConfig) (_ ServerTransport,
 		kp.Timeout = defaultServerKeepaliveTimeout
 	}
 	if kp.Time != infinity {
+		if tcpConn, isTcpConn := conn.(*net.TCPConn); isTcpConn {
+			if err = tcpConn.SetKeepAlive(false); err != nil {
+				return nil, connectionErrorf(false, err, "transport: failed to disable tcp keepalive: %v", err)
+			}
+		}
 		if err = syscall.SetTCPUserTimeout(conn, kp.Timeout); err != nil {
 			return nil, connectionErrorf(false, err, "transport: failed to set TCP_USER_TIMEOUT: %v", err)
 		}
