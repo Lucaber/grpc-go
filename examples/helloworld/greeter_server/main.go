@@ -20,11 +20,14 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"fmt"
 	"log"
 	"net"
+	"os"
+	"runtime"
+	"runtime/pprof"
+	"strconv"
 
 	"google.golang.org/grpc"
 	pb "google.golang.org/grpc/examples/helloworld/helloworld"
@@ -39,10 +42,30 @@ type server struct {
 	pb.UnimplementedGreeterServer
 }
 
-// SayHello implements helloworld.GreeterServer
-func (s *server) SayHello(_ context.Context, in *pb.HelloRequest) (*pb.HelloReply, error) {
-	log.Printf("Received: %v", in.GetName())
-	return &pb.HelloReply{Message: "Hello " + in.GetName()}, nil
+func (s *server) StreamHello(req *pb.HelloRequest, se grpc.ServerStreamingServer[pb.HelloReply]) error {
+	f, err := os.Create("server.pprof")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+	err = pprof.StartCPUProfile(f)
+	if err != nil {
+		panic(err)
+	}
+	defer pprof.StopCPUProfile()
+	done := se.Context().Done()
+	i := 0
+	for {
+		select {
+		case <-done:
+			return nil
+		default:
+			se.SendMsg(&pb.HelloReply{Message: "Hello " + req.GetName() + " " + strconv.Itoa(i)})
+			i++
+			// needed to reproduct syscall cpu usage
+			runtime.Gosched()
+		}
+	}
 }
 
 func main() {

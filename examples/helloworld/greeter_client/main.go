@@ -23,6 +23,8 @@ import (
 	"context"
 	"flag"
 	"log"
+	"os"
+	"runtime/pprof"
 	"time"
 
 	"google.golang.org/grpc"
@@ -49,12 +51,36 @@ func main() {
 	defer conn.Close()
 	c := pb.NewGreeterClient(conn)
 
-	// Contact the server and print out its response.
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-	r, err := c.SayHello(ctx, &pb.HelloRequest{Name: *name})
+	r, err := c.StreamHello(context.Background(), &pb.HelloRequest{Name: *name})
 	if err != nil {
 		log.Fatalf("could not greet: %v", err)
 	}
-	log.Printf("Greeting: %s", r.GetMessage())
+
+	f, err := os.Create("client.pprof")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+	err = pprof.StartCPUProfile(f)
+	if err != nil {
+		panic(err)
+	}
+	defer pprof.StopCPUProfile()
+	res := &pb.HelloReply{}
+	count := 0
+	start := time.Now()
+	for {
+		err = r.RecvMsg(res)
+		if err != nil {
+			panic(err)
+		}
+		count++
+		if count%1000000 == 0 {
+			d := time.Now().Sub(start)
+			log.Printf("%d messages processed in %v %v messages/s", count, d, float64(count)/d.Seconds())
+		}
+		if count == 10000000 {
+			return
+		}
+	}
 }

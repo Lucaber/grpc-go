@@ -135,9 +135,9 @@ const file_examples_helloworld_helloworld_helloworld_proto_rawDesc = "" +
 	"\x04name\x18\x01 \x01(\tR\x04name\"&\n" +
 	"\n" +
 	"HelloReply\x12\x18\n" +
-	"\amessage\x18\x01 \x01(\tR\amessage2I\n" +
-	"\aGreeter\x12>\n" +
-	"\bSayHello\x12\x18.helloworld.HelloRequest\x1a\x16.helloworld.HelloReply\"\x00Bg\n" +
+	"\amessage\x18\x01 \x01(\tR\amessage2N\n" +
+	"\aGreeter\x12C\n" +
+	"\vStreamHello\x12\x18.helloworld.HelloRequest\x1a\x16.helloworld.HelloReply\"\x000\x01Bg\n" +
 	"\x1bio.grpc.examples.helloworldB\x0fHelloWorldProtoP\x01Z5google.golang.org/grpc/examples/helloworld/helloworldb\x06proto3"
 
 var (
@@ -158,8 +158,8 @@ var file_examples_helloworld_helloworld_helloworld_proto_goTypes = []any{
 	(*HelloReply)(nil),   // 1: helloworld.HelloReply
 }
 var file_examples_helloworld_helloworld_helloworld_proto_depIdxs = []int32{
-	0, // 0: helloworld.Greeter.SayHello:input_type -> helloworld.HelloRequest
-	1, // 1: helloworld.Greeter.SayHello:output_type -> helloworld.HelloReply
+	0, // 0: helloworld.Greeter.StreamHello:input_type -> helloworld.HelloRequest
+	1, // 1: helloworld.Greeter.StreamHello:output_type -> helloworld.HelloReply
 	1, // [1:2] is the sub-list for method output_type
 	0, // [0:1] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
