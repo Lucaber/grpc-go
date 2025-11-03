@@ -135,9 +135,12 @@ const file_examples_helloworld_helloworld_helloworld_proto_rawDesc = "" +
 	"\x04name\x18\x01 \x01(\tR\x04name\"&\n" +
 	"\n" +
 	"HelloReply\x12\x18\n" +
-	"\amessage\x18\x01 \x01(\tR\amessage2N\n" +
-	"\aGreeter\x12C\n" +
-	"\vStreamHello\x12\x18.helloworld.HelloRequest\x1a\x16.helloworld.HelloReply\"\x000\x01Bg\n" +
+	"\amessage\x18\x01 \x01(\tR\amessage2\xbd\x02\n" +
+	"\aGreeter\x12I\n" +
+	"\x11StreamHelloDirect\x12\x18.helloworld.HelloRequest\x1a\x16.helloworld.HelloReply\"\x000\x01\x12N\n" +
+	"\x16StreamHelloDirectSched\x12\x18.helloworld.HelloRequest\x1a\x16.helloworld.HelloReply\"\x000\x01\x12J\n" +
+	"\x12StreamHelloChannel\x12\x18.helloworld.HelloRequest\x1a\x16.helloworld.HelloReply\"\x000\x01\x12K\n" +
+	"\x13StreamHelloIterator\x12\x18.helloworld.HelloRequest\x1a\x16.helloworld.HelloReply\"\x000\x01Bg\n" +
 	"\x1bio.grpc.examples.helloworldB\x0fHelloWorldProtoP\x01Z5google.golang.org/grpc/examples/helloworld/helloworldb\x06proto3"
 
 var (
@@ -158,10 +161,16 @@ var file_examples_helloworld_helloworld_helloworld_proto_goTypes = []any{
 	(*HelloReply)(nil),   // 1: helloworld.HelloReply
 }
 var file_examples_helloworld_helloworld_helloworld_proto_depIdxs = []int32{
-	0, // 0: helloworld.Greeter.StreamHello:input_type -> helloworld.HelloRequest
-	1, // 1: helloworld.Greeter.StreamHello:output_type -> helloworld.HelloReply
-	1, // [1:2] is the sub-list for method output_type
-	0, // [0:1] is the sub-list for method input_type
+	0, // 0: helloworld.Greeter.StreamHelloDirect:input_type -> helloworld.HelloRequest
+	0, // 1: helloworld.Greeter.StreamHelloDirectSched:input_type -> helloworld.HelloRequest
+	0, // 2: helloworld.Greeter.StreamHelloChannel:input_type -> helloworld.HelloRequest
+	0, // 3: helloworld.Greeter.StreamHelloIterator:input_type -> helloworld.HelloRequest
+	1, // 4: helloworld.Greeter.StreamHelloDirect:output_type -> helloworld.HelloReply
+	1, // 5: helloworld.Greeter.StreamHelloDirectSched:output_type -> helloworld.HelloReply
+	1, // 6: helloworld.Greeter.StreamHelloChannel:output_type -> helloworld.HelloReply
+	1, // 7: helloworld.Greeter.StreamHelloIterator:output_type -> helloworld.HelloReply
+	4, // [4:8] is the sub-list for method output_type
+	0, // [0:4] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name

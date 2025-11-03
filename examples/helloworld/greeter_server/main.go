@@ -22,6 +22,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"iter"
 	"log"
 	"net"
 	"os"
@@ -42,7 +43,85 @@ type server struct {
 	pb.UnimplementedGreeterServer
 }
 
-func (s *server) StreamHello(req *pb.HelloRequest, se grpc.ServerStreamingServer[pb.HelloReply]) error {
+func (s *server) StreamHelloIterator(req *pb.HelloRequest, se grpc.ServerStreamingServer[pb.HelloReply]) error {
+	f, err := os.Create("server.pprof")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+	err = pprof.StartCPUProfile(f)
+	if err != nil {
+		panic(err)
+	}
+	defer pprof.StopCPUProfile()
+	done := se.Context().Done()
+	i := 0
+
+	var items iter.Seq[int] = func(yield func(i int) bool) {
+		for {
+			if !yield(i) {
+				return
+			}
+			i++
+		}
+	}
+
+	res := &pb.HelloReply{Message: strconv.Itoa(i)}
+
+	for i := range items {
+		select {
+		case <-done:
+			return nil
+		default:
+			res.Message = strconv.Itoa(i)
+			se.SendMsg(res)
+		}
+	}
+	return nil
+}
+
+func (s *server) StreamHelloChannel(req *pb.HelloRequest, se grpc.ServerStreamingServer[pb.HelloReply]) error {
+	f, err := os.Create("server.pprof")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+	err = pprof.StartCPUProfile(f)
+	if err != nil {
+		panic(err)
+	}
+	defer pprof.StopCPUProfile()
+	done := se.Context().Done()
+	i := 0
+
+	items := make(chan int, 10000)
+
+	go func() {
+		for {
+			select {
+			case <-done:
+				return
+			default:
+				items <- i
+				i++
+			}
+		}
+	}()
+
+	for i := range items {
+		select {
+		case <-done:
+			return nil
+		default:
+
+			se.SendMsg(&pb.HelloReply{Message: "Hello " + req.GetName() + " " + strconv.Itoa(i)})
+			i++
+		}
+	}
+	return nil
+}
+
+func (s *server) StreamHelloDirect(req *pb.HelloRequest, se grpc.ServerStreamingServer[pb.HelloReply]) error {
 	f, err := os.Create("server.pprof")
 	if err != nil {
 		log.Fatal(err)
@@ -62,7 +141,31 @@ func (s *server) StreamHello(req *pb.HelloRequest, se grpc.ServerStreamingServer
 		default:
 			se.SendMsg(&pb.HelloReply{Message: "Hello " + req.GetName() + " " + strconv.Itoa(i)})
 			i++
-			// needed to reproduct syscall cpu usage
+		}
+	}
+}
+
+func (s *server) StreamHelloDirectSched(req *pb.HelloRequest, se grpc.ServerStreamingServer[pb.HelloReply]) error {
+	f, err := os.Create("server.pprof")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+	err = pprof.StartCPUProfile(f)
+	if err != nil {
+		panic(err)
+	}
+	defer pprof.StopCPUProfile()
+	done := se.Context().Done()
+	i := 0
+	for {
+		select {
+		case <-done:
+			return nil
+		default:
+			se.SendMsg(&pb.HelloReply{Message: "Hello " + req.GetName() + " " + strconv.Itoa(i)})
+			i++
+			// needed to reproduce syscall cpu usage
 			runtime.Gosched()
 		}
 	}

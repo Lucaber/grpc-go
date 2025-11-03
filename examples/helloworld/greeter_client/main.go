@@ -51,7 +51,7 @@ func main() {
 	defer conn.Close()
 	c := pb.NewGreeterClient(conn)
 
-	r, err := c.StreamHello(context.Background(), &pb.HelloRequest{Name: *name})
+	r, err := c.StreamHelloIterator(context.Background(), &pb.HelloRequest{Name: *name})
 	if err != nil {
 		log.Fatalf("could not greet: %v", err)
 	}
@@ -79,7 +79,7 @@ func main() {
 			d := time.Now().Sub(start)
 			log.Printf("%d messages processed in %v %v messages/s", count, d, float64(count)/d.Seconds())
 		}
-		if count == 10000000 {
+		if count == 5000000 {
 			return
 		}
 	}

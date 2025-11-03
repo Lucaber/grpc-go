@@ -33,7 +33,10 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Greeter_StreamHello_FullMethodName = "/helloworld.Greeter/StreamHello"
+	Greeter_StreamHelloDirect_FullMethodName      = "/helloworld.Greeter/StreamHelloDirect"
+	Greeter_StreamHelloDirectSched_FullMethodName = "/helloworld.Greeter/StreamHelloDirectSched"
+	Greeter_StreamHelloChannel_FullMethodName     = "/helloworld.Greeter/StreamHelloChannel"
+	Greeter_StreamHelloIterator_FullMethodName    = "/helloworld.Greeter/StreamHelloIterator"
 )
 
 // GreeterClient is the client API for Greeter service.
@@ -43,7 +46,10 @@ const (
 // The greeting service definition.
 type GreeterClient interface {
 	// Sends a greeting
-	StreamHello(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[HelloReply], error)
+	StreamHelloDirect(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[HelloReply], error)
+	StreamHelloDirectSched(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[HelloReply], error)
+	StreamHelloChannel(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[HelloReply], error)
+	StreamHelloIterator(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[HelloReply], error)
 }
 
 type greeterClient struct {
@@ -54,9 +60,9 @@ func NewGreeterClient(cc grpc.ClientConnInterface) GreeterClient {
 	return &greeterClient{cc}
 }
 
-func (c *greeterClient) StreamHello(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[HelloReply], error) {
+func (c *greeterClient) StreamHelloDirect(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[HelloReply], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &Greeter_ServiceDesc.Streams[0], Greeter_StreamHello_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &Greeter_ServiceDesc.Streams[0], Greeter_StreamHelloDirect_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +77,64 @@ func (c *greeterClient) StreamHello(ctx context.Context, in *HelloRequest, opts 
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type Greeter_StreamHelloClient = grpc.ServerStreamingClient[HelloReply]
+type Greeter_StreamHelloDirectClient = grpc.ServerStreamingClient[HelloReply]
+
+func (c *greeterClient) StreamHelloDirectSched(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[HelloReply], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Greeter_ServiceDesc.Streams[1], Greeter_StreamHelloDirectSched_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[HelloRequest, HelloReply]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Greeter_StreamHelloDirectSchedClient = grpc.ServerStreamingClient[HelloReply]
+
+func (c *greeterClient) StreamHelloChannel(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[HelloReply], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Greeter_ServiceDesc.Streams[2], Greeter_StreamHelloChannel_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[HelloRequest, HelloReply]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Greeter_StreamHelloChannelClient = grpc.ServerStreamingClient[HelloReply]
+
+func (c *greeterClient) StreamHelloIterator(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[HelloReply], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Greeter_ServiceDesc.Streams[3], Greeter_StreamHelloIterator_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[HelloRequest, HelloReply]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Greeter_StreamHelloIteratorClient = grpc.ServerStreamingClient[HelloReply]
 
 // GreeterServer is the server API for Greeter service.
 // All implementations must embed UnimplementedGreeterServer
@@ -80,7 +143,10 @@ type Greeter_StreamHelloClient = grpc.ServerStreamingClient[HelloReply]
 // The greeting service definition.
 type GreeterServer interface {
 	// Sends a greeting
-	StreamHello(*HelloRequest, grpc.ServerStreamingServer[HelloReply]) error
+	StreamHelloDirect(*HelloRequest, grpc.ServerStreamingServer[HelloReply]) error
+	StreamHelloDirectSched(*HelloRequest, grpc.ServerStreamingServer[HelloReply]) error
+	StreamHelloChannel(*HelloRequest, grpc.ServerStreamingServer[HelloReply]) error
+	StreamHelloIterator(*HelloRequest, grpc.ServerStreamingServer[HelloReply]) error
 	mustEmbedUnimplementedGreeterServer()
 }
 
@@ -91,8 +157,17 @@ type GreeterServer interface {
 // pointer dereference when methods are called.
 type UnimplementedGreeterServer struct{}
 
-func (UnimplementedGreeterServer) StreamHello(*HelloRequest, grpc.ServerStreamingServer[HelloReply]) error {
-	return status.Error(codes.Unimplemented, "method StreamHello not implemented")
+func (UnimplementedGreeterServer) StreamHelloDirect(*HelloRequest, grpc.ServerStreamingServer[HelloReply]) error {
+	return status.Error(codes.Unimplemented, "method StreamHelloDirect not implemented")
+}
+func (UnimplementedGreeterServer) StreamHelloDirectSched(*HelloRequest, grpc.ServerStreamingServer[HelloReply]) error {
+	return status.Error(codes.Unimplemented, "method StreamHelloDirectSched not implemented")
+}
+func (UnimplementedGreeterServer) StreamHelloChannel(*HelloRequest, grpc.ServerStreamingServer[HelloReply]) error {
+	return status.Error(codes.Unimplemented, "method StreamHelloChannel not implemented")
+}
+func (UnimplementedGreeterServer) StreamHelloIterator(*HelloRequest, grpc.ServerStreamingServer[HelloReply]) error {
+	return status.Error(codes.Unimplemented, "method StreamHelloIterator not implemented")
 }
 func (UnimplementedGreeterServer) mustEmbedUnimplementedGreeterServer() {}
 func (UnimplementedGreeterServer) testEmbeddedByValue()                 {}
@@ -115,16 +190,49 @@ func RegisterGreeterServer(s grpc.ServiceRegistrar, srv GreeterServer) {
 	s.RegisterService(&Greeter_ServiceDesc, srv)
 }
 
-func _Greeter_StreamHello_Handler(srv interface{}, stream grpc.ServerStream) error {
+func _Greeter_StreamHelloDirect_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(HelloRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(GreeterServer).StreamHello(m, &grpc.GenericServerStream[HelloRequest, HelloReply]{ServerStream: stream})
+	return srv.(GreeterServer).StreamHelloDirect(m, &grpc.GenericServerStream[HelloRequest, HelloReply]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type Greeter_StreamHelloServer = grpc.ServerStreamingServer[HelloReply]
+type Greeter_StreamHelloDirectServer = grpc.ServerStreamingServer[HelloReply]
+
+func _Greeter_StreamHelloDirectSched_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(HelloRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(GreeterServer).StreamHelloDirectSched(m, &grpc.GenericServerStream[HelloRequest, HelloReply]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Greeter_StreamHelloDirectSchedServer = grpc.ServerStreamingServer[HelloReply]
+
+func _Greeter_StreamHelloChannel_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(HelloRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(GreeterServer).StreamHelloChannel(m, &grpc.GenericServerStream[HelloRequest, HelloReply]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Greeter_StreamHelloChannelServer = grpc.ServerStreamingServer[HelloReply]
+
+func _Greeter_StreamHelloIterator_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(HelloRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(GreeterServer).StreamHelloIterator(m, &grpc.GenericServerStream[HelloRequest, HelloReply]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Greeter_StreamHelloIteratorServer = grpc.ServerStreamingServer[HelloReply]
 
 // Greeter_ServiceDesc is the grpc.ServiceDesc for Greeter service.
 // It's only intended for direct use with grpc.RegisterService,
@@ -135,8 +243,23 @@ var Greeter_ServiceDesc = grpc.ServiceDesc{
 	Methods:     []grpc.MethodDesc{},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "StreamHello",
-			Handler:       _Greeter_StreamHello_Handler,
+			StreamName:    "StreamHelloDirect",
+			Handler:       _Greeter_StreamHelloDirect_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "StreamHelloDirectSched",
+			Handler:       _Greeter_StreamHelloDirectSched_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "StreamHelloChannel",
+			Handler:       _Greeter_StreamHelloChannel_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "StreamHelloIterator",
+			Handler:       _Greeter_StreamHelloIterator_Handler,
 			ServerStreams: true,
 		},
 	},
